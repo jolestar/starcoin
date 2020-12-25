@@ -10,6 +10,7 @@ jobs:
       matrix:
         platform:
           - ubuntu-latest
+          - centos-latest
           - macos-latest
           - windows-latest
         toolchain:
