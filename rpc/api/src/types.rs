@@ -20,7 +20,8 @@ use starcoin_crypto::HashValue;
 use starcoin_service_registry::ServiceRequest;
 use starcoin_types::account_address::AccountAddress;
 use starcoin_types::block::{
-    Block, BlockBody, BlockHeader, BlockNumber, BlockSummary, EpochUncleSummary, UncleSummary,
+    Block, BlockBody, BlockHeader, BlockHeaderExtra, BlockNumber, BlockSummary, EpochUncleSummary,
+    UncleSummary,
 };
 use starcoin_types::contract_event::{ContractEvent, ContractEventInfo};
 use starcoin_types::event::EventKey;
@@ -82,14 +83,14 @@ pub struct BlockHeaderView {
     pub parent_hash: HashValue,
     /// Block timestamp.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub timestamp: u64,
     /// Block number.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub number: BlockNumber,
     /// Block author.
@@ -104,8 +105,8 @@ pub struct BlockHeaderView {
     pub state_root: HashValue,
     /// Gas used for contracts execution.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub gas_used: u64,
     /// Block difficulty
@@ -114,9 +115,12 @@ pub struct BlockHeaderView {
     pub nonce: u32,
     /// hash for block body
     pub body_hash: HashValue,
+    /// block header extra
+    pub extra: BlockHeaderExtra,
     /// The chain id
     pub chain_id: u8,
 }
+
 impl From<BlockHeader> for BlockHeaderView {
     fn from(origin: BlockHeader) -> Self {
         BlockHeaderView {
@@ -133,6 +137,7 @@ impl From<BlockHeader> for BlockHeaderView {
             difficulty: origin.difficulty,
             nonce: origin.nonce,
             body_hash: origin.body_hash,
+            extra: origin.extra,
             chain_id: origin.chain_id.id(),
         }
     }
@@ -144,28 +149,28 @@ pub struct RawUserTransactionView {
     pub sender: AccountAddress,
     // Sequence number of this transaction corresponding to sender's account.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub sequence_number: u64,
 
     // The transaction payload in scs bytes.
     #[serde(
-        serialize_with = "serialize_binary",
-        deserialize_with = "deserialize_binary"
+    serialize_with = "serialize_binary",
+    deserialize_with = "deserialize_binary"
     )]
     pub payload: Vec<u8>,
 
     // Maximal total gas specified by wallet to spend for this transaction.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub max_gas_amount: u64,
     // Maximal price can be paid per gas.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub gas_unit_price: u64,
     // The token code for pay transaction gas, Default is STC token code.
@@ -178,8 +183,8 @@ pub struct RawUserTransactionView {
     // A transaction that doesn't expire is represented by a very large value like
     // u64::max_value().
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub expiration_timestamp_secs: u64,
     pub chain_id: u8,
@@ -231,26 +236,26 @@ pub struct BlockMetadataView {
     /// Parent block hash.
     pub parent_hash: HashValue,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub timestamp: u64,
     pub author: AccountAddress,
     pub author_auth_key: Option<AuthenticationKey>,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub uncles: u64,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub number: BlockNumber,
     pub chain_id: u8,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub parent_gas_used: u64,
 }
@@ -279,6 +284,7 @@ impl From<BlockMetadata> for BlockMetadataView {
         }
     }
 }
+
 impl Into<BlockMetadata> for BlockMetadataView {
     fn into(self) -> BlockMetadata {
         let BlockMetadataView {
@@ -308,8 +314,8 @@ impl Into<BlockMetadata> for BlockMetadataView {
 pub struct TransactionView {
     pub block_hash: HashValue,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub block_number: BlockNumber,
     pub transaction_hash: HashValue,
@@ -419,6 +425,7 @@ pub struct BlockSummaryView {
     pub header: BlockHeaderView,
     pub uncles: Vec<BlockHeaderView>,
 }
+
 impl From<BlockSummary> for BlockSummaryView {
     fn from(summary: BlockSummary) -> Self {
         BlockSummaryView {
@@ -436,8 +443,8 @@ impl From<BlockSummary> for BlockSummaryView {
 pub struct TransactionInfoView {
     pub block_hash: HashValue,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub block_number: BlockNumber,
     /// The hash of this transaction.
@@ -452,8 +459,8 @@ pub struct TransactionInfoView {
 
     /// The amount of gas used.
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub gas_used: u64,
 
@@ -494,8 +501,8 @@ pub enum TransactionVMStatus {
     MoveAbort {
         location: AbortLocation,
         #[serde(
-            deserialize_with = "deserialize_from_string",
-            serialize_with = "serialize_to_string"
+        deserialize_with = "deserialize_from_string",
+        serialize_with = "serialize_to_string"
         )]
         abort_code: u64,
     },
@@ -534,8 +541,8 @@ impl From<KeptVMStatus> for TransactionVMStatus {
 pub struct TransactionEventView {
     pub block_hash: Option<HashValue>,
     #[serde(
-        deserialize_with = "deserialize_from_string_opt",
-        serialize_with = "serialize_to_string_opt"
+    deserialize_with = "deserialize_from_string_opt",
+    serialize_with = "serialize_to_string_opt"
     )]
     pub block_number: Option<BlockNumber>,
     pub transaction_hash: Option<HashValue>,
@@ -543,15 +550,15 @@ pub struct TransactionEventView {
     pub transaction_index: Option<u32>,
 
     #[serde(
-        serialize_with = "serialize_binary",
-        deserialize_with = "deserialize_binary"
+    serialize_with = "serialize_binary",
+    deserialize_with = "deserialize_binary"
     )]
     pub data: Vec<u8>,
     pub type_tag: TypeTag,
     pub event_key: EventKey,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub event_seq_number: u64,
 }
@@ -596,29 +603,29 @@ impl TransactionEventView {
 pub struct UncleSummaryView {
     /// total uncle
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub uncles: u64,
     /// sum(number of the block which contain uncle block - uncle parent block number).
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub sum: u64,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub avg: u64,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub time_sum: u64,
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub time_avg: u64,
 }
@@ -639,8 +646,8 @@ impl From<UncleSummary> for UncleSummaryView {
 pub struct EpochUncleSummaryView {
     /// epoch number
     #[serde(
-        deserialize_with = "deserialize_from_string",
-        serialize_with = "serialize_to_string"
+    deserialize_with = "deserialize_from_string",
+    serialize_with = "serialize_to_string"
     )]
     pub epoch: u64,
     pub number_summary: UncleSummaryView,
@@ -704,25 +711,25 @@ impl<T> From<T> for StrView<T> {
 }
 
 impl<T> Serialize for StrView<T>
-where
-    Self: ToString,
+    where
+        Self: ToString,
 {
     fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
-    where
-        S: Serializer,
+        where
+            S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl<'de, T> Deserialize<'de> for StrView<T>
-where
-    Self: FromStr,
-    <Self as FromStr>::Err: std::fmt::Display,
+    where
+        Self: FromStr,
+        <Self as FromStr>::Err: std::fmt::Display,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         let s = <String>::deserialize(deserializer)?;
 
@@ -754,6 +761,7 @@ impl FromStr for StrView<ModuleId> {
         Ok(Self(ModuleId::new(module_addr, module_name)))
     }
 }
+
 impl std::fmt::Display for StrView<TypeTag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", &self.0)
@@ -768,6 +776,7 @@ impl FromStr for TypeTagView {
         Ok(Self(type_tag))
     }
 }
+
 impl std::fmt::Display for StrView<StructTag> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", &self.0)
@@ -785,6 +794,7 @@ impl FromStr for StructTagView {
         }
     }
 }
+
 impl std::fmt::Display for StrView<TransactionArgument> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", &self.0)
