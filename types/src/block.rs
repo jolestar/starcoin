@@ -86,7 +86,7 @@ impl Serialize for BlockHeaderExtra {
             S: Serializer,
     {
         if serializer.is_human_readable() {
-            self.to_string().serialize(serializer)
+            format!("0x{}", hex::encode(self.0)).serialize(serializer)
         } else {
             // See comment in deserialize.
             serializer.serialize_newtype_struct("BlockHeaderExtra", &self.0)
